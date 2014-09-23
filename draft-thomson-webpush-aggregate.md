@@ -34,18 +34,8 @@ normative:
   RFC2119:
   I-D.thomson-webpush-http2:
   RFC5988:
-  JSON:
-    title: JSON
-    author:
-      name: Tim Bray
-      ins: T. Bray
-    date: 2013-12
-  JSON-MERGE:
-    title: JSON Merge Patch
-    author:
-      name: James Snell
-      ins: J. Snell
-    date: 2014-10
+  RFC7159:
+  I-D.ietf-appsawg-json-merge-patch:
   RFC3339:
 
 informative:
@@ -139,7 +129,7 @@ included in the provided list.
 
 ## Aggregation Channel Request Format
 
-The content of this request is a JSON {{JSON}} object.  The keys in the object
+The content of this request is a JSON {{RFC7159}} object.  The keys in the object
 are the URIs of the channels being aggregated.  The corresponding value is an
 object containing the following keys:
 
@@ -178,7 +168,7 @@ sent.  Instead, it produces the current set of channels that are included in
 
 A PATCH request to the aggregated channel URI can be used to update the set of
 channels that are included in the set.  This uses an request body containing a
-JSON Merge {{JSON-MERGE}} document.
+JSON Merge {{I-D.ietf-appsawg-json-merge-patch}} document.
 
 
 # Security Considerations
