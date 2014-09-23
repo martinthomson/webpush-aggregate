@@ -1,6 +1,6 @@
 # Channel Aggregation for Web Push
 
-* [Editor's copy](https://martinthomson.github.io/webpusg-aggregate/)
+* [Editor's copy](https://martinthomson.github.io/webpush-aggregate/)
 
 ## Contributing
 
