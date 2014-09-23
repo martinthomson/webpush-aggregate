@@ -6,8 +6,8 @@ date: 2014-09-22
 category: std
 
 ipr: trust200902
-area: General
-workgroup: WebPush Working Group
+area: RAI
+workgroup: WebPush
 keyword:
  - Internet-Draft
  - Push
@@ -33,14 +33,20 @@ author:
 normative:
   RFC2119:
   I-D.thomson-webpush-http2:
-  RFC3986:
+  RFC5988:
   JSON:
     title: JSON
     author:
       name: Tim Bray
       ins: T. Bray
     date: 2013-12
-  RFC5988:
+  JSON-MERGE:
+    title: JSON Merge Patch
+    author:
+      name: James Snell
+      ins: J. Snell
+    date: 2014-10
+  RFC3339:
 
 informative:
   JWE:
@@ -133,24 +139,22 @@ included in the provided list.
 
 ## Aggregation Channel Request Format
 
-The content of this request is a JSON {{JSON}} array that contains more than one
-JSON object.  Each JSON object in the list contains the following fields:
-
-channel:
-
-: The channel to include in the aggregated channel.
+The content of this request is a JSON {{JSON}} object.  The keys in the object
+are the URIs of the channels being aggregated.  The corresponding value is an
+object containing the following keys:
 
 expires:
 
 : A date and time in {{RFC3339}} format that identifies when the provided
-channel becomes invalid.  The push server MUST remove the channel from the
-aggregation set when this time expires.
+  channel becomes invalid.  The push server MUST remove the channel from the
+  aggregation set when this time expires.  This field is optional, in which case
+  the channel does not expire.
 
 pubkey:
 
-: An optional field containing the public key to be used for encrypting messages
-  on ths channel. [[TBD: This - primarily the corresponding CPU load - is
-  probably the largest problem with this security architecture.]]
+: The public key to be used for encrypting messages on ths channel. This field
+  is optional.  [[TBD: This - primarily the corresponding CPU load - is probably
+  the largest problem with this security architecture.]]
 
 {:br }
 
@@ -162,26 +166,19 @@ Push aggregation services MUST support gzip Content-Encoding for this format.
 
 ## Determining Aggregation Set Status
 
+Editors note: This might needs to live on a different URI to avoid confusion
+about what is being PUT there (for pushing) and all this stuff.
+
 A GET request to the aggregated channel URI does not provide the last message
 sent.  Instead, it produces the current set of channels that are included in
 "application/push-aggregation+json" format.
 
 
-# IANA Considerations {#IANA}
+## Modifying the Aggregation Set
 
-TODO: add details
-
-
-## Registration of Link Relation Type
-
-A link relation for the link aggregation resource is registered accordinging to
-the rules in {{RFC5988}}.
-
-
-## Registration of MIME Media Type
-
-A new MIME media type, "application/push-aggregation+json" is registered
-according to the rules in TODO.
+A PATCH request to the aggregated channel URI can be used to update the set of
+channels that are included in the set.  This uses an request body containing a
+JSON Merge {{JSON-MERGE}} document.
 
 
 # Security Considerations
@@ -202,3 +199,20 @@ Messages sent over aggregated push channels do not have confidentiality and
 integrity protection, unless applications provide a mechanism within the message
 payload.  Since the information is pushed to multiple recipients, these channels
 are unsuitable for confidential information.
+
+
+# IANA Considerations {#IANA}
+
+TODO: expand with details
+
+
+## Registration of Link Relation Type
+
+A link relation for the link aggregation resource is registered accordinging to
+the rules in {{RFC5988}}.
+
+
+## Registration of MIME Media Type
+
+A new MIME media type, "application/push-aggregation+json" is registered
+according to the rules in TODO.
