@@ -1,7 +1,7 @@
 ---
-title: Web Push to Multiple Devices
-abbrev: Push Multiples
-docname: draft-thomson-webpush-multi-latest
+title: Web Push Channel Aggregation
+abbrev: Push Aggregation
+docname: draft-thomson-webpush-aggregation-latest
 date: 2014-09-22
 category: std
 
@@ -34,6 +34,13 @@ normative:
   RFC2119:
   I-D.thomson-webpush-http2:
   RFC3986:
+  JSON:
+    title: JSON
+    author:
+      name: Tim Bray
+      ins: T. Bray
+    date: 2013-12
+  RFC5988:
 
 informative:
   JWE:
@@ -44,7 +51,6 @@ informative:
       ins: M. Jones
       org: Microsoft
     date: 2014-09-22
-
 
 
 --- abstract
@@ -66,7 +72,11 @@ Web Push protocol {{I-D.thomson-webpush-http2}}.
 
 A new link relation is added to the Web Push registration response.  This
 identifies a service that can be used to create a push channel endpoint that
-directes pushed messages to multiple devices.
+aggregates multiple individual push channels.
+
+Applications can use the aggregated channel to deliver the same push message on
+all of the aggregated channels with a single request.  This makes the
+large-scale delivery of identical messages more efficient.
 
 
 # Terminology
@@ -79,14 +89,99 @@ The meaning of these is described in {{RFC2119}}.
 
 # List Registration Service
 
-A new link relation, `....:push:multi`, is provided in response to a registration
-request.  This link relation identifies a service that can be used to create an aggregated push channel that
+A new link relation {{RFC5988}}, `....:push:aggregate`, is provided in response
+to a push registration or channel creation request.  This link relation
+identifies an aggregation service that can be used to create a new aggregated
+push channel.
 
-Push servers provide a small number of different values for the `...:multi` link
-relation.  Applications that with to send notifications to a large number of
-users establish a list of
+If the link relation is provided in response to a push registration creation
+request, it applies to all channels created on that registration; if the link
+relation is provided in response to a channel creation request, it applies to
+just that channel.
 
-# Amending List Registrations
+Applications that send notifications to a large number of users first establish
+a list of devices that have the same aggregation service URI.  Push servers
+provide a small number of different values for the aggregate link relation.
+
+
+Note:
+
+: Though the use of different push servers will ensure that applications will
+need to support multiple aggregation services, a large number of endpoints
+diminishes the value of having messages distributed by the push server.
+
+{:br }
+
+Absence of the `...:aggregate` link relation indicates that the push server does
+not support channel aggregation.
+
+
+## Creating an Aggregated Channel
+
+A new aggregated channel is created by sending an HTTP POST request to the
+aggregation service URI.  The request contains
+
+The response is identical to the response to the `channel` resource, as
+described in Section 5 of {{I-D.thomson-webpush-http2}}.  The 201 (Created)
+response contains the identity of the aggregated channel in the Location header
+field.
+
+Messages pushed to the aggregated channel URI (see Section 3 of
+{{I-D.thomson-webpush-http2}}) are forwarded to all of the channels that are
+included in the provided list.
+
+
+## Aggregation Channel Request Format
+
+The content of this request is a JSON {{JSON}} array that contains more than one
+JSON object.  Each JSON object in the list contains the following fields:
+
+channel:
+
+: The channel to include in the aggregated channel.
+
+expires:
+
+: A date and time in {{RFC3339}} format that identifies when the provided
+channel becomes invalid.  The push server MUST remove the channel from the
+aggregation set when this time expires.
+
+pubkey:
+
+: An optional field containing the public key to be used for encrypting messages
+  on ths channel. [[TBD: This - primarily the corresponding CPU load - is
+  probably the largest problem with this security architecture.]]
+
+{:br }
+
+This format is identified using a MIME media type of
+"application/push-aggregation+json" {{IANA}}.
+
+Push aggregation services MUST support gzip Content-Encoding for this format.
+
+
+## Determining Aggregation Set Status
+
+A GET request to the aggregated channel URI does not provide the last message
+sent.  Instead, it produces the current set of channels that are included in
+"application/push-aggregation+json" format.
+
+
+# IANA Considerations {#IANA}
+
+TODO: add details
+
+
+## Registration of Link Relation Type
+
+A link relation for the link aggregation resource is registered accordinging to
+the rules in {{RFC5988}}.
+
+
+## Registration of MIME Media Type
+
+A new MIME media type, "application/push-aggregation+json" is registered
+according to the rules in TODO.
 
 
 # Security Considerations
@@ -94,4 +189,16 @@ users establish a list of
 This protocol provides an application a way to use a relatively small message to
 cause a large amount of data to be sent.  This adds considerably to the denial
 of service risks the protocol poses to devices.  The basic mitigations in
-{{I-D.thomson-webpush-http2}} apply, with a heightened urgency.
+{{I-D.thomson-webpush-http2}} apply, though these are significantly more
+important.
+
+Of particular concern is access control to the aggregated channel URI.  The
+aggregate channel URI is only used by the entity that requests its creation;
+therefore, this can be ensured by making the URI difficult to guess.  That is,
+the same entropy requirements apply to aggregated channel URIs as for other
+channel URIs.
+
+Messages sent over aggregated push channels do not have confidentiality and
+integrity protection, unless applications provide a mechanism within the message
+payload.  Since the information is pushed to multiple recipients, these channels
+are unsuitable for confidential information.
