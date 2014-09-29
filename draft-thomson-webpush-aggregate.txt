@@ -67,17 +67,18 @@ Table of Contents
    2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   2
    3.  List Registration Service . . . . . . . . . . . . . . . . . .   3
      3.1.  Creating an Aggregated Channel  . . . . . . . . . . . . .   3
-     3.2.  Aggregation Channel Request Format  . . . . . . . . . . .   3
-     3.3.  Determining Aggregation Set Status  . . . . . . . . . . .   4
-     3.4.  Modifying the Aggregation Set . . . . . . . . . . . . . .   4
-   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   4
-   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   5
-     5.1.  Registration of Link Relation Type  . . . . . . . . . . .   5
-     5.2.  Registration of MIME Media Type . . . . . . . . . . . . .   5
-   6.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   5
-     6.1.  Normative References  . . . . . . . . . . . . . . . . . .   5
-     6.2.  Informative References  . . . . . . . . . . . . . . . . .   5
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   6
+     3.2.  Aggregated Channel Description Format . . . . . . . . . .   3
+     3.3.  Determining Aggregated Channel Set Status . . . . . . . .   4
+     3.4.  Modifying the Aggregated Channel Set  . . . . . . . . . .   4
+   4.  Distributing Messages . . . . . . . . . . . . . . . . . . . .   4
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .   5
+     5.1.  Message Encryption  . . . . . . . . . . . . . . . . . . .   5
+     5.2.  Packet Amplification  . . . . . . . . . . . . . . . . . .   5
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   6
+     6.1.  Registration of Link Relation Type  . . . . . . . . . . .   6
+     6.2.  Registration of MIME Media Type . . . . . . . . . . . . .   6
+   7.  Normative References  . . . . . . . . . . . . . . . . . . . .   6
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
 
 1.  Introduction
 
@@ -102,7 +103,6 @@ Table of Contents
    interoperability requirements on implementations: the capitalized
    words "MUST", "MUST NOT", "SHOULD" and "MAY".  The meaning of these
    is described in [RFC2119].
-
 
 
 
@@ -142,25 +142,25 @@ Internet-Draft              Push Aggregation              September 2014
 3.1.  Creating an Aggregated Channel
 
    A new aggregated channel is created by sending an HTTP POST request
-   to the aggregation service URI.  The request contains
+   to the aggregation service URI.  The request contains a description
+   of the set of channels that are aggregated (see Section 3.2).
 
    The response is identical to the response to the "channel" resource,
    as described in Section 5 of [I-D.thomson-webpush-http2].  The 201
-   (Created) response contains the identity of the aggregated channel in
-   the Location header field.
+   (Created) response contains the URI of the aggregated channel in the
+   Location header field.  The response can also include information on
+   when the aggregated channel expires.
 
    Messages pushed to the aggregated channel URI (see Section 3 of
    [I-D.thomson-webpush-http2]) are forwarded to all of the channels
-   that are included in the provided list.
+   that are included in the provided list.  See Section 4 for details.
 
-3.2.  Aggregation Channel Request Format
+3.2.  Aggregated Channel Description Format
 
-   The content of this request is a JSON [RFC7159] object.  The keys in
-   the object are the URIs of the channels being aggregated.  The
-   corresponding value is an object containing the following keys:
-
-   expires:  A date and time in [RFC3339] format that identifies when
-      the provided channel becomes invalid.  The push server MUST remove
+   The content of a request to create an aggregated channel is a JSON
+   [RFC7159] object.  The keys in the object are the URIs of the
+   channels being aggregated.  The corresponding value is an object
+   containing the following keys:
 
 
 
@@ -170,54 +170,54 @@ Thomson                  Expires March 26, 2015                 [Page 3]
 Internet-Draft              Push Aggregation              September 2014
 
 
-      the channel from the aggregation set when this time expires.  This
-      field is optional, in which case the channel does not expire.
+   expires:  A date and time in [RFC3339] format that identifies when
+      the provided channel becomes invalid.  The push server MUST remove
+      the channel from the aggregated set when this time expires.  This
+      field is optional, in which case the channel does not expire from
+      the set.
 
-   pubkey:  The public key to be used for encrypting messages on ths
-      channel.  This field is optional.  [[TBD: This - primarily the
-      corresponding CPU load - is probably the largest problem with this
-      security architecture.]]
+   encrypted_key:  An encrypted version of the key that will be used to
+      encrypt messages on the aggregated channel, encrypted for the
+      recipient.  The value of this field is a JSON Web Encryption (JWE)
+      Encrypted Key [I-D.ietf-jose-json-web-encryption] encoded using
+      the Base 64 URL and Filename Safe alphabet [RFC4648].
+
+   Additional fields can be added to this format by updating this
+   document.
 
    This format is identified using a MIME media type of "application/
-   push-aggregation+json" Section 5.
+   push-aggregation+json" (see Section 6).
 
-   Push aggregation services MUST support gzip Content-Encoding for this
-   format.
+   Push aggregation services MUST support gzip Content-Encoding
+   [RFC7231] for this format.
 
-3.3.  Determining Aggregation Set Status
+3.3.  Determining Aggregated Channel Set Status
 
    Editors note: This might needs to live on a different URI to avoid
    confusion about what is being PUT there (for pushing) and all this
-   stuff.
+   gunk.  This design overloads the uses of the resource, which is a bit
+   stinky.
 
    A GET request to the aggregated channel URI does not provide the last
    message sent.  Instead, it produces the current set of channels that
    are included in "application/push-aggregation+json" format.
 
-3.4.  Modifying the Aggregation Set
+3.4.  Modifying the Aggregated Channel Set
 
    A PATCH request to the aggregated channel URI can be used to update
    the set of channels that are included in the set.  This uses an
    request body containing a JSON Merge
    [I-D.ietf-appsawg-json-merge-patch] document.
 
-4.  Security Considerations
+4.  Distributing Messages
 
-   This protocol provides an application a way to use a relatively small
-   message to cause a large amount of data to be sent.  This adds
-   considerably to the denial of service risks the protocol poses to
-   devices.  The basic mitigations in [I-D.thomson-webpush-http2] apply,
-   though these are significantly more important.
+   Upon receipt of a PUT request, the aggregated channel resource sends
+   a PUT request to each unexpired channel in the set of resources it
+   monitors.
 
-   Of particular concern is access control to the aggregated channel
-   URI.  The aggregate channel URI is only used by the entity that
-   requests its creation; therefore, this can be ensured by making the
-   URI difficult to guess.  That is, the same entropy requirements apply
-   to aggregated channel URIs as for other channel URIs.
+   This message is modified for each channel to include the JWE
+   Encrypted Key that is associated with the channel.
 
-   Messages sent over aggregated push channels do not have
-   confidentiality and integrity protection, unless applications provide
-   a mechanism within the message payload.  Since the information is
 
 
 
@@ -226,31 +226,96 @@ Thomson                  Expires March 26, 2015                 [Page 4]
 Internet-Draft              Push Aggregation              September 2014
 
 
-   pushed to multiple recipients, these channels are unsuitable for
-   confidential information.
+   An aggregated channel resource MUST support the JWE JSON
+   Serialization [I-D.ietf-jose-json-web-encryption].  The pushed
+   message is modified to include a "recipients" array containing a
+   single object.  That object includes an "encrypted_key" field that is
+   taken from the "encrypted_key" field associated with the channel.
+   Any existing "recipients" array MUST be removed.
 
-5.  IANA Considerations
+   An equivalent transform MAY be performed for the JWE Compact
+   Representation [I-D.ietf-jose-json-web-encryption] if that is
+   supported.
 
-   TODO: expand with details
+5.  Security Considerations
 
-5.1.  Registration of Link Relation Type
+   The security considerations of [I-D.thomson-webpush-http2] apply,
+   with additional concerns around delivery of push messages to multiple
+   devices, and increased denial of service exposure.
 
-   A link relation for the link aggregation resource is registered
+5.1.  Message Encryption
+
+   Messages sent over aggregated push channels are encrypted.  Encrypted
+   data are available to all entities that are able to decrypt any JWE
+   Encrypted Key.  Assuming that each device distributes its keying
+   material to the application server only, that means that push message
+   contents can be decrypted by all devices that have been in the
+   aggregated channel set since the last time keys were changed, plus
+   the application server.
+
+   Removal of a channel from the aggregated set - or expiration of a
+   channel - only means that messages are not delivered to the
+   corresponding device.  A device that has been removed from the
+   aggregated set can still decrypt any messages it is able to acquire.
+
+   In order to ensure that removed devices are unable to decrypt
+   messages, an application server can generate a new content encryption
+   key.  A change to the content encryption key requires that all
+   entries in the aggregated channel are updated, which can be
+   computationally expensive.  Applications can mitigate the impact of
+   removal by creating multiple aggregated channel sets of smaller
+   sizes.  Alternatively, if push messages do not require
+   confidentiality from the removed devices, the same keys can be used.
+
+5.2.  Packet Amplification
+
+   This protocol provides an application a way to use a relatively small
+   message to cause a large amount of data to be sent.  This adds
+   considerably to the denial of service risks the protocol poses to
+   devices.
+
+
+
+
+Thomson                  Expires March 26, 2015                 [Page 5]
+
+Internet-Draft              Push Aggregation              September 2014
+
+
+   Of particular concern is access control for the aggregated channel
+   URI.  The aggregate channel URI is only used by the entity that
+   requests its creation; therefore, this can be ensured by making the
+   URI difficult to guess.  In particular, the same entropy requirements
+   apply to aggregated channel URIs as for other channel URIs (see
+   [I-D.thomson-webpush-http2]).
+
+6.  IANA Considerations
+
+   This document relies on two new codepoint registrations for the
+   aggregation service link relation and the MIME media type of the
+   document that describes resources.
+
+6.1.  Registration of Link Relation Type
+
+   A link relation for the channel aggregation resource is registered
    accordinging to the rules in [RFC5988].
 
-5.2.  Registration of MIME Media Type
+6.2.  Registration of MIME Media Type
 
    A new MIME media type, "application/push-aggregation+json" is
    registered according to the rules in TODO.
 
-6.  References
-
-6.1.  Normative References
+7.  Normative References
 
    [I-D.ietf-appsawg-json-merge-patch]
               Hoffman, P. and J. Snell, "JSON Merge Patch", draft-ietf-
               appsawg-json-merge-patch-07 (work in progress), August
               2014.
+
+   [I-D.ietf-jose-json-web-encryption]
+              Jones, M. and J. Hildebrand, "JSON Web Encryption (JWE)",
+              draft-ietf-jose-json-web-encryption-33 (work in progress),
+              September 2014.
 
    [I-D.thomson-webpush-http2]
               Thomson, M., "Generic Event Delivery Using HTTP Push",
@@ -263,24 +328,23 @@ Internet-Draft              Push Aggregation              September 2014
    [RFC3339]  Klyne, G., Ed. and C. Newman, "Date and Time on the
               Internet: Timestamps", RFC 3339, July 2002.
 
+   [RFC4648]  Josefsson, S., "The Base16, Base32, and Base64 Data
+              Encodings", RFC 4648, October 2006.
+
+
+
+Thomson                  Expires March 26, 2015                 [Page 6]
+
+Internet-Draft              Push Aggregation              September 2014
+
+
    [RFC5988]  Nottingham, M., "Web Linking", RFC 5988, October 2010.
 
    [RFC7159]  Bray, T., "The JavaScript Object Notation (JSON) Data
               Interchange Format", RFC 7159, March 2014.
 
-6.2.  Informative References
-
-   [JWE]      Jones, M., "JWE", September 2014, <TODO>.
-
-
-
-
-
-
-Thomson                  Expires March 26, 2015                 [Page 5]
-
-Internet-Draft              Push Aggregation              September 2014
-
+   [RFC7231]  Fielding, R. and J. Reschke, "Hypertext Transfer Protocol
+              (HTTP/1.1): Semantics and Content", RFC 7231, June 2014.
 
 Author's Address
 
@@ -325,12 +389,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-Thomson                  Expires March 26, 2015                 [Page 6]
+Thomson                  Expires March 26, 2015                 [Page 7]

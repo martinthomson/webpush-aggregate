@@ -457,16 +457,17 @@ ul.toc a:first-child {
 <link href="#rfc.section.2" rel="Chapter" title="2 Terminology"/>
 <link href="#rfc.section.3" rel="Chapter" title="3 List Registration Service"/>
 <link href="#rfc.section.3.1" rel="Chapter" title="3.1 Creating an Aggregated Channel"/>
-<link href="#rfc.section.3.2" rel="Chapter" title="3.2 Aggregation Channel Request Format"/>
-<link href="#rfc.section.3.3" rel="Chapter" title="3.3 Determining Aggregation Set Status"/>
-<link href="#rfc.section.3.4" rel="Chapter" title="3.4 Modifying the Aggregation Set"/>
-<link href="#rfc.section.4" rel="Chapter" title="4 Security Considerations"/>
-<link href="#rfc.section.5" rel="Chapter" title="5 IANA Considerations"/>
-<link href="#rfc.section.5.1" rel="Chapter" title="5.1 Registration of Link Relation Type"/>
-<link href="#rfc.section.5.2" rel="Chapter" title="5.2 Registration of MIME Media Type"/>
-<link href="#rfc.references" rel="Chapter" title="6 References"/>
-<link href="#rfc.references.1" rel="Chapter" title="6.1 Normative References"/>
-<link href="#rfc.references.2" rel="Chapter" title="6.2 Informative References"/>
+<link href="#rfc.section.3.2" rel="Chapter" title="3.2 Aggregated Channel Description Format"/>
+<link href="#rfc.section.3.3" rel="Chapter" title="3.3 Determining Aggregated Channel Set Status"/>
+<link href="#rfc.section.3.4" rel="Chapter" title="3.4 Modifying the Aggregated Channel Set"/>
+<link href="#rfc.section.4" rel="Chapter" title="4 Distributing Messages"/>
+<link href="#rfc.section.5" rel="Chapter" title="5 Security Considerations"/>
+<link href="#rfc.section.5.1" rel="Chapter" title="5.1 Message Encryption"/>
+<link href="#rfc.section.5.2" rel="Chapter" title="5.2 Packet Amplification"/>
+<link href="#rfc.section.6" rel="Chapter" title="6 IANA Considerations"/>
+<link href="#rfc.section.6.1" rel="Chapter" title="6.1 Registration of Link Relation Type"/>
+<link href="#rfc.section.6.2" rel="Chapter" title="6.2 Registration of MIME Media Type"/>
+<link href="#rfc.references" rel="Chapter" title="7 Normative References"/>
 <link href="#rfc.authors" rel="Chapter"/>
 
 
@@ -536,16 +537,17 @@ ul.toc a:first-child {
 <li>2.   <a href="#rfc.section.2">Terminology</a></li>
 <li>3.   <a href="#rfc.section.3">List Registration Service</a></li>
 <li>3.1.   <a href="#rfc.section.3.1">Creating an Aggregated Channel</a></li>
-<li>3.2.   <a href="#rfc.section.3.2">Aggregation Channel Request Format</a></li>
-<li>3.3.   <a href="#rfc.section.3.3">Determining Aggregation Set Status</a></li>
-<li>3.4.   <a href="#rfc.section.3.4">Modifying the Aggregation Set</a></li>
-<li>4.   <a href="#rfc.section.4">Security Considerations</a></li>
-<li>5.   <a href="#rfc.section.5">IANA Considerations</a></li>
-<li>5.1.   <a href="#rfc.section.5.1">Registration of Link Relation Type</a></li>
-<li>5.2.   <a href="#rfc.section.5.2">Registration of MIME Media Type</a></li>
-<li>6.   <a href="#rfc.references">References</a></li>
-<li>6.1.   <a href="#rfc.references.1">Normative References</a></li>
-<li>6.2.   <a href="#rfc.references.2">Informative References</a></li>
+<li>3.2.   <a href="#rfc.section.3.2">Aggregated Channel Description Format</a></li>
+<li>3.3.   <a href="#rfc.section.3.3">Determining Aggregated Channel Set Status</a></li>
+<li>3.4.   <a href="#rfc.section.3.4">Modifying the Aggregated Channel Set</a></li>
+<li>4.   <a href="#rfc.section.4">Distributing Messages</a></li>
+<li>5.   <a href="#rfc.section.5">Security Considerations</a></li>
+<li>5.1.   <a href="#rfc.section.5.1">Message Encryption</a></li>
+<li>5.2.   <a href="#rfc.section.5.2">Packet Amplification</a></li>
+<li>6.   <a href="#rfc.section.6">IANA Considerations</a></li>
+<li>6.1.   <a href="#rfc.section.6.1">Registration of Link Relation Type</a></li>
+<li>6.2.   <a href="#rfc.section.6.2">Registration of MIME Media Type</a></li>
+<li>7.   <a href="#rfc.references">Normative References</a></li>
 <li><a href="#rfc.authors">Author's Address</a></li>
 
 
@@ -569,38 +571,48 @@ ul.toc a:first-child {
 </dl>
 <p id="rfc.section.3.p.5">Absence of the <samp>...:aggregate</samp> link relation indicates that the push server does not support channel aggregation.</p>
 <h1 id="rfc.section.3.1"><a href="#rfc.section.3.1">3.1.</a> <a href="#creating-an-aggregated-channel" id="creating-an-aggregated-channel">Creating an Aggregated Channel</a></h1>
-<p id="rfc.section.3.1.p.1">A new aggregated channel is created by sending an HTTP POST request to the aggregation service URI.  The request contains</p>
-<p id="rfc.section.3.1.p.2">The response is identical to the response to the <samp>channel</samp> resource, as described in Section 5 of <a href="#I-D.thomson-webpush-http2">[I-D.thomson-webpush-http2]</a>.  The 201 (Created) response contains the identity of the aggregated channel in the Location header field.</p>
-<p id="rfc.section.3.1.p.3">Messages pushed to the aggregated channel URI (see Section 3 of <a href="#I-D.thomson-webpush-http2">[I-D.thomson-webpush-http2]</a>) are forwarded to all of the channels that are included in the provided list.</p>
-<h1 id="rfc.section.3.2"><a href="#rfc.section.3.2">3.2.</a> <a href="#aggregation-channel-request-format" id="aggregation-channel-request-format">Aggregation Channel Request Format</a></h1>
-<p id="rfc.section.3.2.p.1">The content of this request is a JSON <a href="#RFC7159">[RFC7159]</a> object.  The keys in the object are the URIs of the channels being aggregated.  The corresponding value is an object containing the following keys:</p>
+<p id="rfc.section.3.1.p.1">A new aggregated channel is created by sending an HTTP POST request to the aggregation service URI.  The request contains a description of the set of channels that are aggregated (see <a href="#format">Section 3.2</a>).</p>
+<p id="rfc.section.3.1.p.2">The response is identical to the response to the <samp>channel</samp> resource, as described in Section 5 of <a href="#I-D.thomson-webpush-http2">[I-D.thomson-webpush-http2]</a>.  The 201 (Created) response contains the URI of the aggregated channel in the Location header field.  The response can also include information on when the aggregated channel expires.</p>
+<p id="rfc.section.3.1.p.3">Messages pushed to the aggregated channel URI (see Section 3 of <a href="#I-D.thomson-webpush-http2">[I-D.thomson-webpush-http2]</a>) are forwarded to all of the channels that are included in the provided list.  See <a href="#push">Section 4</a> for details.</p>
+<h1 id="rfc.section.3.2"><a href="#rfc.section.3.2">3.2.</a> <a href="#format" id="format">Aggregated Channel Description Format</a></h1>
+<p id="rfc.section.3.2.p.1">The content of a request to create an aggregated channel is a JSON <a href="#RFC7159">[RFC7159]</a> object.  The keys in the object are the URIs of the channels being aggregated.  The corresponding value is an object containing the following keys:</p>
 <p/>
 
 <dl>
   <dt>expires:</dt>
-  <dd style="margin-left: 8">A date and time in <a href="#RFC3339">[RFC3339]</a> format that identifies when the provided channel becomes invalid.  The push server MUST remove the channel from the aggregation set when this time expires.  This field is optional, in which case the channel does not expire.</dd>
-  <dt>pubkey:</dt>
-  <dd style="margin-left: 8">The public key to be used for encrypting messages on ths channel. This field is optional.  [[TBD: This - primarily the corresponding CPU load - is probably the largest problem with this security architecture.]]</dd>
+  <dd style="margin-left: 8">A date and time in <a href="#RFC3339">[RFC3339]</a> format that identifies when the provided channel becomes invalid.  The push server MUST remove the channel from the aggregated set when this time expires.  This field is optional, in which case the channel does not expire from the set.</dd>
+  <dt>encrypted_key:</dt>
+  <dd style="margin-left: 8">An encrypted version of the key that will be used to encrypt messages on the aggregated channel, encrypted for the recipient.  The value of this field is a JSON Web Encryption (JWE) Encrypted Key <a href="#I-D.ietf-jose-json-web-encryption">[I-D.ietf-jose-json-web-encryption]</a> encoded using the Base 64 URL and Filename Safe alphabet <a href="#RFC4648">[RFC4648]</a>.</dd>
 </dl>
-<p id="rfc.section.3.2.p.3">This format is identified using a MIME media type of &#8220;application/push-aggregation+json&#8221; <a href="#IANA">Section 5</a>.</p>
-<p id="rfc.section.3.2.p.4">Push aggregation services MUST support gzip Content-Encoding for this format.</p>
-<h1 id="rfc.section.3.3"><a href="#rfc.section.3.3">3.3.</a> <a href="#determining-aggregation-set-status" id="determining-aggregation-set-status">Determining Aggregation Set Status</a></h1>
-<p id="rfc.section.3.3.p.1">Editors note: This might needs to live on a different URI to avoid confusion about what is being PUT there (for pushing) and all this stuff.</p>
+<p id="rfc.section.3.2.p.3">Additional fields can be added to this format by updating this document.</p>
+<p id="rfc.section.3.2.p.4">This format is identified using a MIME media type of &#8220;application/push-aggregation+json&#8221; (see <a href="#iana">Section 6</a>).</p>
+<p id="rfc.section.3.2.p.5">Push aggregation services MUST support gzip Content-Encoding <a href="#RFC7231">[RFC7231]</a> for this format.</p>
+<h1 id="rfc.section.3.3"><a href="#rfc.section.3.3">3.3.</a> <a href="#determining-aggregated-channel-set-status" id="determining-aggregated-channel-set-status">Determining Aggregated Channel Set Status</a></h1>
+<p id="rfc.section.3.3.p.1">Editors note: This might needs to live on a different URI to avoid confusion about what is being PUT there (for pushing) and all this gunk.  This design overloads the uses of the resource, which is a bit stinky.</p>
 <p id="rfc.section.3.3.p.2">A GET request to the aggregated channel URI does not provide the last message sent.  Instead, it produces the current set of channels that are included in &#8220;application/push-aggregation+json&#8221; format.</p>
-<h1 id="rfc.section.3.4"><a href="#rfc.section.3.4">3.4.</a> <a href="#modifying-the-aggregation-set" id="modifying-the-aggregation-set">Modifying the Aggregation Set</a></h1>
+<h1 id="rfc.section.3.4"><a href="#rfc.section.3.4">3.4.</a> <a href="#modifying-the-aggregated-channel-set" id="modifying-the-aggregated-channel-set">Modifying the Aggregated Channel Set</a></h1>
 <p id="rfc.section.3.4.p.1">A PATCH request to the aggregated channel URI can be used to update the set of channels that are included in the set.  This uses an request body containing a JSON Merge <a href="#I-D.ietf-appsawg-json-merge-patch">[I-D.ietf-appsawg-json-merge-patch]</a> document.</p>
-<h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
-<p id="rfc.section.4.p.1">This protocol provides an application a way to use a relatively small message to cause a large amount of data to be sent.  This adds considerably to the denial of service risks the protocol poses to devices.  The basic mitigations in <a href="#I-D.thomson-webpush-http2">[I-D.thomson-webpush-http2]</a> apply, though these are significantly more important.</p>
-<p id="rfc.section.4.p.2">Of particular concern is access control to the aggregated channel URI.  The aggregate channel URI is only used by the entity that requests its creation; therefore, this can be ensured by making the URI difficult to guess.  That is, the same entropy requirements apply to aggregated channel URIs as for other channel URIs.</p>
-<p id="rfc.section.4.p.3">Messages sent over aggregated push channels do not have confidentiality and integrity protection, unless applications provide a mechanism within the message payload.  Since the information is pushed to multiple recipients, these channels are unsuitable for confidential information.</p>
-<h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#IANA" id="IANA">IANA Considerations</a></h1>
-<p id="rfc.section.5.p.1">TODO: expand with details</p>
-<h1 id="rfc.section.5.1"><a href="#rfc.section.5.1">5.1.</a> <a href="#registration-of-link-relation-type" id="registration-of-link-relation-type">Registration of Link Relation Type</a></h1>
-<p id="rfc.section.5.1.p.1">A link relation for the link aggregation resource is registered accordinging to the rules in <a href="#RFC5988">[RFC5988]</a>.</p>
-<h1 id="rfc.section.5.2"><a href="#rfc.section.5.2">5.2.</a> <a href="#registration-of-mime-media-type" id="registration-of-mime-media-type">Registration of MIME Media Type</a></h1>
-<p id="rfc.section.5.2.p.1">A new MIME media type, &#8220;application/push-aggregation+json&#8221; is registered according to the rules in TODO.</p>
-<h1 id="rfc.references"><a href="#rfc.references">6.</a> References</h1>
-<h1 id="rfc.references.1"><a href="#rfc.references.1">6.1.</a> Normative References</h1>
+<h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#push" id="push">Distributing Messages</a></h1>
+<p id="rfc.section.4.p.1">Upon receipt of a PUT request, the aggregated channel resource sends a PUT request to each unexpired channel in the set of resources it monitors.</p>
+<p id="rfc.section.4.p.2">This message is modified for each channel to include the JWE Encrypted Key that is associated with the channel.</p>
+<p id="rfc.section.4.p.3">An aggregated channel resource MUST support the JWE JSON Serialization <a href="#I-D.ietf-jose-json-web-encryption">[I-D.ietf-jose-json-web-encryption]</a>.  The pushed message is modified to include a <samp>recipients</samp> array containing a single object.  That object includes an <samp>encrypted_key</samp> field that is taken from the <samp>encrypted_key</samp> field associated with the channel.  Any existing <samp>recipients</samp> array MUST be removed.</p>
+<p id="rfc.section.4.p.4">An equivalent transform MAY be performed for the JWE Compact Representation <a href="#I-D.ietf-jose-json-web-encryption">[I-D.ietf-jose-json-web-encryption]</a> if that is supported.</p>
+<h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
+<p id="rfc.section.5.p.1">The security considerations of <a href="#I-D.thomson-webpush-http2">[I-D.thomson-webpush-http2]</a> apply, with additional concerns around delivery of push messages to multiple devices, and increased denial of service exposure.</p>
+<h1 id="rfc.section.5.1"><a href="#rfc.section.5.1">5.1.</a> <a href="#message-encryption" id="message-encryption">Message Encryption</a></h1>
+<p id="rfc.section.5.1.p.1">Messages sent over aggregated push channels are encrypted.  Encrypted data are available to all entities that are able to decrypt any JWE Encrypted Key.  Assuming that each device distributes its keying material to the application server only, that means that push message contents can be decrypted by all devices that have been in the aggregated channel set since the last time keys were changed, plus the application server.</p>
+<p id="rfc.section.5.1.p.2">Removal of a channel from the aggregated set - or expiration of a channel - only means that messages are not delivered to the corresponding device.  A device that has been removed from the aggregated set can still decrypt any messages it is able to acquire.</p>
+<p id="rfc.section.5.1.p.3">In order to ensure that removed devices are unable to decrypt messages, an application server can generate a new content encryption key.  A change to the content encryption key requires that all entries in the aggregated channel are updated, which can be computationally expensive.  Applications can mitigate the impact of removal by creating multiple aggregated channel sets of smaller sizes.  Alternatively, if push messages do not require confidentiality from the removed devices, the same keys can be used.</p>
+<h1 id="rfc.section.5.2"><a href="#rfc.section.5.2">5.2.</a> <a href="#packet-amplification" id="packet-amplification">Packet Amplification</a></h1>
+<p id="rfc.section.5.2.p.1">This protocol provides an application a way to use a relatively small message to cause a large amount of data to be sent.  This adds considerably to the denial of service risks the protocol poses to devices.</p>
+<p id="rfc.section.5.2.p.2">Of particular concern is access control for the aggregated channel URI.  The aggregate channel URI is only used by the entity that requests its creation; therefore, this can be ensured by making the URI difficult to guess.  In particular, the same entropy requirements apply to aggregated channel URIs as for other channel URIs (see <a href="#I-D.thomson-webpush-http2">[I-D.thomson-webpush-http2]</a>).</p>
+<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#iana" id="iana">IANA Considerations</a></h1>
+<p id="rfc.section.6.p.1">This document relies on two new codepoint registrations for the aggregation service link relation and the MIME media type of the document that describes resources.</p>
+<h1 id="rfc.section.6.1"><a href="#rfc.section.6.1">6.1.</a> <a href="#registration-of-link-relation-type" id="registration-of-link-relation-type">Registration of Link Relation Type</a></h1>
+<p id="rfc.section.6.1.p.1">A link relation for the channel aggregation resource is registered accordinging to the rules in <a href="#RFC5988">[RFC5988]</a>.</p>
+<h1 id="rfc.section.6.2"><a href="#rfc.section.6.2">6.2.</a> <a href="#registration-of-mime-media-type" id="registration-of-mime-media-type">Registration of MIME Media Type</a></h1>
+<p id="rfc.section.6.2.p.1">A new MIME media type, &#8220;application/push-aggregation+json&#8221; is registered according to the rules in TODO.</p>
+<h1 id="rfc.references"><a href="#rfc.references">7.</a> Normative References</h1>
 <table>
   <tbody>
     <tr>
@@ -608,6 +620,12 @@ ul.toc a:first-child {
         <b id="I-D.ietf-appsawg-json-merge-patch">[I-D.ietf-appsawg-json-merge-patch]</b>
       </td>
       <td class="top"><a>Hoffman, P.</a> and <a>J. Snell</a>, "<a href="http://tools.ietf.org/html/draft-ietf-appsawg-json-merge-patch-07">JSON Merge Patch</a>", Internet-Draft draft-ietf-appsawg-json-merge-patch-07, August 2014.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="I-D.ietf-jose-json-web-encryption">[I-D.ietf-jose-json-web-encryption]</b>
+      </td>
+      <td class="top"><a>Jones, M.</a> and <a>J. Hildebrand</a>, "<a href="http://tools.ietf.org/html/draft-ietf-jose-json-web-encryption-33">JSON Web Encryption (JWE)</a>", Internet-Draft draft-ietf-jose-json-web-encryption-33, September 2014.</td>
     </tr>
     <tr>
       <td class="reference">
@@ -629,6 +647,12 @@ ul.toc a:first-child {
     </tr>
     <tr>
       <td class="reference">
+        <b id="RFC4648">[RFC4648]</b>
+      </td>
+      <td class="top"><a>Josefsson, S.</a>, "<a href="http://tools.ietf.org/html/rfc4648">The Base16, Base32, and Base64 Data Encodings</a>", RFC 4648, October 2006.</td>
+    </tr>
+    <tr>
+      <td class="reference">
         <b id="RFC5988">[RFC5988]</b>
       </td>
       <td class="top"><a>Nottingham, M.</a>, "<a href="http://tools.ietf.org/html/rfc5988">Web Linking</a>", RFC 5988, October 2010.</td>
@@ -639,16 +663,11 @@ ul.toc a:first-child {
       </td>
       <td class="top"><a>Bray, T.</a>, "<a href="http://tools.ietf.org/html/rfc7159">The JavaScript Object Notation (JSON) Data Interchange Format</a>", RFC 7159, March 2014.</td>
     </tr>
-  </tbody>
-</table>
-<h1 id="rfc.references.2"><a href="#rfc.references.2">6.2.</a> Informative References</h1>
-<table>
-  <tbody>
     <tr>
       <td class="reference">
-        <b id="JWE">[JWE]</b>
+        <b id="RFC7231">[RFC7231]</b>
       </td>
-      <td class="top"><a title="Microsoft">Jones, M.</a>, "<a href="TODO">JWE</a>", September 2014.</td>
+      <td class="top"><a>Fielding, R.</a> and <a>J. Reschke</a>, "<a href="http://tools.ietf.org/html/rfc7231">Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content</a>", RFC 7231, June 2014.</td>
     </tr>
   </tbody>
 </table>
