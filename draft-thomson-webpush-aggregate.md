@@ -2,7 +2,7 @@
 title: Web Push Channel Aggregation
 abbrev: Push Aggregation
 docname: draft-thomson-webpush-aggregation-latest
-date: 2014-09-22
+date: 2014-10-08
 category: std
 
 ipr: trust200902
@@ -39,14 +39,6 @@ normative:
   RFC3339:
 
 informative:
-  JWE:
-    target: TODO
-    title: JWE
-    author:
-      name: Michael Jones
-      ins: M. Jones
-      org: Microsoft
-    date: 2014-09-22
 
 
 --- abstract
