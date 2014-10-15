@@ -1,25 +1,34 @@
+# In case your system doesn't have any of these tools:
+# https://pypi.python.org/pypi/xml2rfc
+# https://github.com/cabo/kramdown-rfc2629
+# https://github.com/Juniper/libslax/tree/master/doc/oxtradoc
+# https://tools.ietf.org/tools/idnits/
+
 xml2rfc ?= xml2rfc
 kramdown-rfc2629 ?= kramdown-rfc2629
+oxtradoc ?= oxtradoc.in
 idnits ?= idnits
+rfcdiff ?= rfcdiff --browse
 
-draft := $(basename $(lastword $(wildcard draft-*.xml draft-*.md)))
+draft := $(basename $(lastword $(sort $(wildcard draft-*.xml)) $(sort $(wildcard draft-*.org)) $(sort $(wildcard draft-*.md))))
 
 ifeq (,$(draft))
-$(warning No file named draft-*.md or draft-*.xml)
+$(warning No file named draft-*.md or draft-*.xml or draft-*.org)
 $(error Read README.md for setup instructions)
 endif
 
-draft_type := $(suffix $(firstword $(wildcard $(draft).md $(draft).xml)))
+draft_type := $(suffix $(firstword $(wildcard $(draft).md $(draft).org $(draft).xml)))
 
 current_ver := $(shell git tag | grep '$(draft)-[0-9][0-9]' | tail -1 | sed -e"s/.*-//")
-ifeq "${current_ver}" ""
+ifeq (,$(current_ver))
 next_ver ?= 00
 else
 next_ver ?= $(shell printf "%.2d" $$((1$(current_ver)-99)))
 endif
 next := $(draft)-$(next_ver)
+diff_ver := $(draft)-$(current_ver)
 
-.PHONY: latest submit clean
+.PHONY: latest submit diff clean
 
 latest: $(draft).txt $(draft).html
 
@@ -30,23 +39,35 @@ idnits: $(next).txt
 
 clean:
 	-rm -f $(draft).txt $(draft).html index.html
-	-rm -f $(next).txt $(next).html
-	-rm -f $(draft)-[0-9][0-9].xml
-ifeq (md,$(draft_type))
+	-rm -f $(addprefix $(draft)-[0-9][0-9].,xml md org html txt)
+	-rm -f *.diff.html
+ifneq (xml,$(draft_type))
 	-rm -f $(draft).xml
 endif
 
 $(next).xml: $(draft).xml
 	sed -e"s/$(basename $<)-latest/$(basename $@)/" $< > $@
 
+ifneq (,$(current_ver))
+.INTERMEDIATE: $(addprefix $(draft)-$(current_ver),.txt $(draft_type))
+diff: $(draft).txt $(draft)-$(current_ver).txt
+	-$(rfcdiff) $^
+
+$(draft)-$(current_ver)$(draft_type):
+	git show $(draft)-$(current_ver):$(draft)$(draft_type) > $@
+endif
+
 .INTERMEDIATE: $(draft).xml
 %.xml: %.md
 	$(kramdown-rfc2629) $< > $@
 
+%.xml: %.org
+	$(oxtradoc) -m outline-to-xml -n "$@" $< > $@
+
 %.txt: %.xml
 	$(xml2rfc) $< -o $@ --text
 
-ifeq "$(shell uname -s 2>/dev/null)" "Darwin"
+ifeq (Darwin, $(shell uname -s 2>/dev/null))
 sed_i := sed -i ''
 else
 sed_i := sed -i

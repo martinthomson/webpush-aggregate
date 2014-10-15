@@ -1,7 +1,7 @@
 ---
 title: Web Push Channel Aggregation
 abbrev: Push Aggregation
-docname: draft-thomson-webpush-aggregation-latest
+docname: draft-thomson-webpush-aggregate-latest
 date: 2014-10-08
 category: std
 
