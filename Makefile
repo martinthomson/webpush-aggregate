@@ -1,7 +1,6 @@
 # In case your system doesn't have any of these tools:
 # https://pypi.python.org/pypi/xml2rfc
 # https://github.com/cabo/kramdown-rfc2629
-# https://github.com/Juniper/libslax/tree/master/doc/oxtradoc
 # https://tools.ietf.org/tools/idnits/
 
 xml2rfc ?= xml2rfc
@@ -28,7 +27,7 @@ endif
 next := $(draft)-$(next_ver)
 diff_ver := $(draft)-$(current_ver)
 
-.PHONY: latest submit diff clean
+.PHONY: latest submit diff clean update
 
 latest: $(draft).txt $(draft).html
 
@@ -67,20 +66,38 @@ endif
 %.txt: %.xml
 	$(xml2rfc) $< -o $@ --text
 
-ifeq (Darwin, $(shell uname -s 2>/dev/null))
-sed_i := sed -i ''
-else
-sed_i := sed -i
-endif
-
-%.html: %.xml
+%.htmltmp: %.xml
 	$(xml2rfc) $< -o $@ --html
-	$(sed_i) -f lib/addstyle.sed $@
+%.html: %.htmltmp
+	sed -f lib/addstyle.sed $@ > $<
+
+### Update this Makefile
+# The prerequisites here are what is updated
+.INTERMEDIATE: .i-d-template.diff
+update: Makefile lib .gitignore
+	-if [ -f .i-d-template ]; then \
+	  git diff --exit-code $$(cat .i-d-template) -- $^ > .i-d-template.diff && \
+	  rm -f .i-d-template.diff; \
+	fi
+	git diff --quiet -- $^ || \
+	  (echo "You have uncommitted changes to:" $^ 1>&2; exit 1)
+	git remote | grep i-d-template > /dev/null || \
+	  git remote add i-d-template https://github.com/martinthomson/i-d-template.git
+	git fetch i-d-template
+	[ -f .i-d-template ] && [ $$(git rev-parse i-d-template/master) = $$(cat .i-d-template) ] || \
+	  git checkout i-d-template/master $^
+	git diff --quiet -- $^ && rm -f .i-d-template.diff || \
+	  git commit -m "Update of $^ from i-d-template/$$(git rev-parse i-d-template/master)" $^
+	if [ -f .i-d-template.diff ]; then \
+	  git apply .i-d-template.diff && \
+	  git commit -m "Restoring local changes to $$(git diff --name-only $^ | paste -s -d ' ' -)" $^; \
+	fi
+	git rev-parse i-d-template/master > .i-d-template
 
 ### Below this deals with updating gh-pages
 
 GHPAGES_TMP := /tmp/ghpages$(shell echo $$$$)
-.TRANSIENT: $(GHPAGES_TMP)
+.INTERMEDIATE: $(GHPAGES_TMP)
 ifeq (,$(TRAVIS_COMMIT))
 GIT_ORIG := $(shell git branch | grep '*' | cut -c 3-)
 else
