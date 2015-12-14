@@ -17,7 +17,7 @@ keyword:
  - Multicast
 
 stand_alone: yes
-pi: [toc, sortrefs, symrefs]
+pi: [toc, sortrefs, symrefs, docmapping]
 
 author:
  -
