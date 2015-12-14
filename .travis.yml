@@ -1,12 +1,13 @@
 language: python
-before_install:
-- sudo apt-get update -qq
-- sudo apt-get install -y python-lxml python-pip
+sudo: false
+addons:
+  apt:
+    packages:
+     - python-lxml
+     - python-pip
+
 install:
-- deactivate
-- gem install kramdown-rfc2629
-- sudo pip install xml2rfc
+ - gem install kramdown-rfc2629
+ - pip install xml2rfc
+
 script: make ghpages
-env:
-  global:
-  - secure: PZfxlaP21F+VNahKjvpoW9TZTLspYFqCATUNjM93gOIXHRHs8mFT8CvsxmjoE+2k4cfncKxpq/swFWpn6hwqIHTybTlg0TWAQx3kmF5D7eqmZ2pRFacqG3A55Wx6DbnWjCBKExeo0BBROSQGDaF8Bkvy5Wmb6plxtCMbDqBR5Jo=
